@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { Filter } from 'lucide-react';
 
+
 // Colorful palette
 const STATUS_COLORS = {
   pending: '#f59e0b',    // amber
@@ -40,6 +41,7 @@ const EMERGENCY_COLORS = [
   '#8b5cf6', // violet - Rescue
   '#06b6d4', // cyan - Missing
   '#64748b', // slate - Other
+
 ];
 
 const VULNERABLE_COLORS = ['#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
@@ -568,6 +570,7 @@ export function VulnerableGroupsChart({ data }: ChartsProps) {
     { 'With Children': 0, 'With Elderly': 0, 'With Disabled': 0, 'Medical Emergency': 0 }
   );
 
+
   const chartData = Object.entries(totals)
     .filter(([name]) => selectedGroups.includes(name))
     .map(([name, value]) => ({ 
@@ -583,6 +586,7 @@ export function VulnerableGroupsChart({ data }: ChartsProps) {
         : [...prev, group]
     );
   };
+
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6">
@@ -632,7 +636,9 @@ export function VulnerableGroupsChart({ data }: ChartsProps) {
               boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
             }} 
           />
+
           <Bar dataKey="value">
+
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}

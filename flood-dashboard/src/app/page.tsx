@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, AlertTriangle, Download, Clock, ArrowLeft, BarChart3 } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Download, Clock, ArrowLeft, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { SOSRecord, DistrictSummary } from '@/types';
 import { generateDistrictSummary, calculateTotals } from '@/lib/dataUtils';
 import { StatsCards, DistrictTable, EmergencyTypeTable } from '@/components/Dashboard';
@@ -36,6 +36,7 @@ export default function Home() {
   const [totals, setTotals] = useState<DistrictSummary | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [apiStats, setApiStats] = useState<FetchResponse['stats'] | null>(null);
+  const [showCharts, setShowCharts] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -210,14 +211,27 @@ export default function Home() {
               </div>
             )}
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <StatusByDistrictChart data={districtSummary} />
-              <PriorityByDistrictChart data={districtSummary} />
-              <EmergencyTypePieChart data={districtSummary} />
-              <PriorityPieChart data={districtSummary} />
-              <PeopleByDistrictChart data={districtSummary} />
-              <VulnerableGroupsChart data={districtSummary} />
+            {/* Charts Section */}
+            <div className="mb-8">
+              <button
+                onClick={() => setShowCharts(!showCharts)}
+                className="flex items-center gap-2 mb-4 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <BarChart3 size={18} />
+                {showCharts ? 'Hide Charts' : 'Show Charts'}
+                {showCharts ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+              
+              {showCharts && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <StatusByDistrictChart data={districtSummary} />
+                  <PriorityByDistrictChart data={districtSummary} />
+                  <EmergencyTypePieChart data={districtSummary} />
+                  <PriorityPieChart data={districtSummary} />
+                  <PeopleByDistrictChart data={districtSummary} />
+                  <VulnerableGroupsChart data={districtSummary} />
+                </div>
+              )}
             </div>
 
             {/* Tables */}

@@ -93,7 +93,7 @@ export function DistrictTable({ data }: DistrictTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {data.map((row, index) => (
+            {data.map((row) => (
               <tr
                 key={row.district}
                 className="hover:bg-slate-50 transition-colors"
@@ -185,7 +185,7 @@ export function EmergencyTypeTable({ data }: EmergencyTypeTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {data.map((row, index) => (
+            {data.map((row) => (
               <tr
                 key={row.district}
                 className="hover:bg-slate-50 transition-colors"

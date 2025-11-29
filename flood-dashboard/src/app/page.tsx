@@ -5,6 +5,7 @@ import { RefreshCw, AlertTriangle, Download, Clock, ArrowLeft, BarChart3, Chevro
 import { SOSRecord, DistrictSummary } from '@/types';
 import { generateDistrictSummary, calculateTotals } from '@/lib/dataUtils';
 import { StatsCards, DistrictTable, EmergencyTypeTable } from '@/components/Dashboard';
+import { GlobalFilters } from '@/components/GlobalFilters';
 import {
   StatusByDistrictChart,
   PriorityByDistrictChart,
@@ -32,11 +33,20 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [records, setRecords] = useState<SOSRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<SOSRecord[]>([]);
   const [districtSummary, setDistrictSummary] = useState<DistrictSummary[]>([]);
   const [totals, setTotals] = useState<DistrictSummary | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [apiStats, setApiStats] = useState<FetchResponse['stats'] | null>(null);
   const [showCharts, setShowCharts] = useState(true);
+
+  // Handler for filtered records from GlobalFilters
+  const handleFilteredRecords = useCallback((filtered: SOSRecord[]) => {
+    setFilteredRecords(filtered);
+    const summary = generateDistrictSummary(filtered);
+    setDistrictSummary(summary);
+    setTotals(calculateTotals(summary));
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -48,9 +58,7 @@ export default function Home() {
 
       if (data.success) {
         setRecords(data.records);
-        const summary = generateDistrictSummary(data.records);
-        setDistrictSummary(summary);
-        setTotals(calculateTotals(summary));
+        // Initial summary will be set by GlobalFilters component
         setLastUpdated(new Date(data.fetchedAt).toLocaleString());
         setApiStats(data.stats);
       } else {
@@ -121,6 +129,9 @@ export default function Home() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Check if filters are active (filtered count differs from total)
+  const filtersActive = filteredRecords.length !== records.length && records.length > 0;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -195,6 +206,22 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {/* Global Filters */}
+            {records.length > 0 && (
+              <GlobalFilters
+                records={records}
+                onFilteredRecords={handleFilteredRecords}
+              />
+            )}
+
+            {/* Filter Status Banner */}
+            {filtersActive && (
+              <div className="mb-6 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-2 text-indigo-700 text-sm">
+                <span className="font-medium">Filters applied:</span>
+                <span>Showing {filteredRecords.length.toLocaleString()} of {records.length.toLocaleString()} records</span>
+              </div>
+            )}
+
             {/* Stats Cards */}
             {totals && (
               <div className="mb-8">

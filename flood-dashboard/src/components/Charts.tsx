@@ -248,25 +248,33 @@ export function PeopleByDistrictChart({ data }: ChartsProps) {
   }));
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">
+    <div className="bg-white rounded-lg border border-slate-200 p-6">
+      <h3 className="text-sm font-semibold mb-4 text-slate-700 uppercase tracking-wide">
         People Affected by District (Top 15)
       </h3>
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis
             dataKey="name"
             angle={-45}
             textAnchor="end"
             interval={0}
             fontSize={11}
+            tick={{ fill: '#64748b' }}
           />
-          <YAxis />
-          <Tooltip />
+          <YAxis tick={{ fill: '#64748b' }} />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: '#fff', 
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+            }} 
+          />
           <Legend />
-          <Bar dataKey="Total People" fill="#3b82f6" />
-          <Bar dataKey="Total Cases" fill="#10b981" />
+          <Bar dataKey="Total People" fill="#475569" />
+          <Bar dataKey="Total Cases" fill="#94a3b8" />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -287,17 +295,24 @@ export function VulnerableGroupsChart({ data }: ChartsProps) {
   const chartData = Object.entries(totals).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">
+    <div className="bg-white rounded-lg border border-slate-200 p-6">
+      <h3 className="text-sm font-semibold mb-4 text-slate-700 uppercase tracking-wide">
         Vulnerable Groups
       </h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis dataKey="name" type="category" />
-          <Tooltip />
-          <Bar dataKey="value" fill="#8b5cf6" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <XAxis type="number" tick={{ fill: '#64748b' }} />
+          <YAxis dataKey="name" type="category" tick={{ fill: '#64748b' }} />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: '#fff', 
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+            }} 
+          />
+          <Bar dataKey="value" fill="#64748b" />
         </BarChart>
       </ResponsiveContainer>
     </div>

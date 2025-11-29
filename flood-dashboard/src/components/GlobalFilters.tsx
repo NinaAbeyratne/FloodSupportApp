@@ -33,7 +33,7 @@ interface GlobalFiltersProps {
 
 export function GlobalFilters({ records, onFilteredRecords }: GlobalFiltersProps) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Extract unique values for dropdowns
   const districts = useMemo(() => {
@@ -135,7 +135,7 @@ export function GlobalFilters({ records, onFilteredRecords }: GlobalFiltersProps
       >
         <div className="flex items-center gap-3">
           <Filter size={18} className="text-indigo-600" />
-          <span className="font-medium text-slate-700">Filters</span>
+          <span className="font-medium text-slate-700">Filters (Expand to use)</span>
           {hasActiveFilters && (
             <span className="px-2 py-0.5 bg-indigo-600 text-white text-xs font-medium rounded-full">
               {activeFilterCount} Active

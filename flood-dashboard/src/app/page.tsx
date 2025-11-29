@@ -61,7 +61,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [records, setRecords] = useState<SOSRecord[]>([]);
   const [districtSummary, setDistrictSummary] = useState<DistrictSummary[]>([]);
-  const [totals, setTotals] = useState<DistrictSummary | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [apiStats, setApiStats] = useState<FetchResponse['stats'] | null>(null);
   
@@ -95,7 +94,6 @@ export default function Home() {
         setRecords(data.records);
         const summary = generateDistrictSummary(data.records);
         setDistrictSummary(summary);
-        setTotals(calculateTotals(summary));
         setLastUpdated(new Date(data.fetchedAt).toLocaleString());
         setApiStats(data.stats);
       } else {

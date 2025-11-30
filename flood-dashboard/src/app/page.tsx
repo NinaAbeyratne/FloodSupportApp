@@ -23,7 +23,7 @@ import {
   ResponseTimeChart,
 } from '@/components/TimelineCharts';
 
-interface FetchResponse {
+interface ChunkResponse {
   success: boolean;
   records: SOSRecord[];
   stats: {
@@ -32,9 +32,22 @@ interface FetchResponse {
     byStatus: Record<string, number>;
     byPriority: Record<string, number>;
   };
-  totalRecords: number;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalRecords: number;
+    hasNextPage: boolean;
+  };
   fetchedAt: string;
   error?: string;
+}
+
+interface FetchProgress {
+  currentPage: number;
+  totalPages: number;
+  recordsFetched: number;
+  totalRecords: number;
+  isComplete: boolean;
 }
 
 interface Filters {
@@ -71,7 +84,10 @@ export default function Home() {
   const [records, setRecords] = useState<SOSRecord[]>([]);
   const [districtSummary, setDistrictSummary] = useState<DistrictSummary[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [apiStats, setApiStats] = useState<FetchResponse['stats'] | null>(null);
+  const [apiStats, setApiStats] = useState<ChunkResponse['stats'] | null>(null);
+  
+  // Progressive loading state
+  const [fetchProgress, setFetchProgress] = useState<FetchProgress | null>(null);
   
   // Filter states
   const [showFilters, setShowFilters] = useState(true);
@@ -94,20 +110,57 @@ export default function Home() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setRecords([]);
+    setFetchProgress(null);
+
+    const CHUNK_SIZE = 200;
+    let page = 1;
+    let totalPages = 1;
+    let totalRecords = 0;
+    const allRecords: SOSRecord[] = [];
 
     try {
-      const response = await fetch('/api/sos');
-      const data: FetchResponse = await response.json();
+      // Fetch data in chunks
+      while (page <= totalPages) {
+        const response = await fetch(`/api/sos/chunk?page=${page}&limit=${CHUNK_SIZE}`);
+        const data: ChunkResponse = await response.json();
 
-      if (data.success) {
-        setRecords(data.records);
-        const summary = generateDistrictSummary(data.records);
-        setDistrictSummary(summary);
-        setLastUpdated(new Date(data.fetchedAt).toLocaleString());
-        setApiStats(data.stats);
-      } else {
-        setError(data.error || 'Failed to fetch data');
+        if (data.success) {
+          // Add new records
+          allRecords.push(...data.records);
+          
+          // Update state progressively
+          setRecords([...allRecords]);
+          const summary = generateDistrictSummary(allRecords);
+          setDistrictSummary(summary);
+          
+          // Update pagination info
+          totalPages = data.pagination.totalPages;
+          totalRecords = data.pagination.totalRecords;
+          
+          // Update progress
+          setFetchProgress({
+            currentPage: page,
+            totalPages,
+            recordsFetched: allRecords.length,
+            totalRecords,
+            isComplete: page >= totalPages,
+          });
+
+          // Set stats from first page
+          if (page === 1) {
+            setApiStats(data.stats);
+          }
+          
+          setLastUpdated(new Date(data.fetchedAt).toLocaleString());
+          page++;
+        } else {
+          throw new Error(data.error || 'Failed to fetch data');
+        }
       }
+
+      // Mark loading complete
+      setFetchProgress(prev => prev ? { ...prev, isComplete: true } : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {
@@ -711,12 +764,54 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center py-20">
             <RefreshCw size={40} className="animate-spin text-slate-500 mb-4" />
             <p className="text-slate-600">Loading data from API...</p>
-            <p className="text-slate-400 text-sm mt-2">
-              This may take a moment as we fetch all live records
-            </p>
+            {fetchProgress && (
+              <div className="mt-4 w-full max-w-md">
+                <div className="flex justify-between text-sm text-slate-500 mb-2">
+                  <span>Fetching records...</span>
+                  <span>{fetchProgress.recordsFetched} / {fetchProgress.totalRecords}</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${(fetchProgress.recordsFetched / fetchProgress.totalRecords) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-2 text-center">
+                  Page {fetchProgress.currentPage} of {fetchProgress.totalPages}
+                </p>
+              </div>
+            )}
+            {!fetchProgress && (
+              <p className="text-slate-400 text-sm mt-2">
+                Initializing connection...
+              </p>
+            )}
           </div>
         ) : (
           <>
+            {/* Progressive Loading Banner */}
+            {loading && records.length > 0 && fetchProgress && !fetchProgress.isComplete && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <RefreshCw size={16} className="animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-700 font-medium">
+                      Fetching data... {fetchProgress.recordsFetched} of {fetchProgress.totalRecords} records
+                    </span>
+                  </div>
+                  <span className="text-xs text-blue-500">
+                    {Math.round((fetchProgress.recordsFetched / fetchProgress.totalRecords) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-1.5 mt-2">
+                  <div 
+                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${(fetchProgress.recordsFetched / fetchProgress.totalRecords) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* View Toggle */}
             <div className="mb-6 flex items-center gap-2">
               <div className="bg-white p-1 rounded-lg border border-slate-200 inline-flex flex-wrap shadow-sm">
